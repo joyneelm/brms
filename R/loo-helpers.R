@@ -14,10 +14,12 @@ loo_R2 <- function(object, ...) {
   UseMethod("loo_R2")
 }
 
-compute_loos <- function(
-  models, criterion = c("loo", "waic", "psis", "psislw", "kfold"),
-  use_stored = TRUE, compare = TRUE, ...
-) {
+loo_choices <- function() {
+  c("loo", "waic", "psis", "psislw", "kfold", "quick_loo")
+}
+
+compute_loos <- function(models, criterion = "loo", use_stored = TRUE, 
+                         compare = TRUE, ...) {
   # helper function used to create (lists of) 'loo' objects
   # Args:
   #   models: list of brmsfit objects
@@ -28,7 +30,7 @@ compute_loos <- function(
   # Returns:
   #   If length(models) > 1 an object of class 'loolist'
   #   If length(models) == 1 an object of class 'loo'
-  criterion <- match.arg(criterion)
+  criterion <- match.arg(criterion, loo_choices())
   args <- nlist(criterion, ...)
   if (length(models) > 1L) {
     warning2(
@@ -64,8 +66,8 @@ compute_loos <- function(
   out
 }
 
-compute_loo <- function(x, criterion = c("loo", "waic", "psis", "kfold"),
-                        reloo = FALSE, k_threshold = 0.7, reloo_args = list(),
+compute_loo <- function(x, criterion = "loo", reloo = FALSE, 
+                        k_threshold = 0.7, reloo_args = list(),
                         pointwise = FALSE, newdata = NULL, resp = NULL, 
                         model_name = "", use_stored = TRUE, ...) {
   # compute information criteria using the 'loo' package
@@ -81,7 +83,7 @@ compute_loo <- function(x, criterion = c("loo", "waic", "psis", "kfold"),
   #   ...: passed to other post-processing methods
   # Returns:
   #   an object of class 'loo'
-  criterion <- match.arg(criterion)
+  criterion <- match.arg(criterion, loo_choices())
   model_name <- as_one_character(model_name)
   use_stored <- as_one_logical(use_stored)
   if (use_stored && is.loo(x[[criterion]])) {
@@ -109,12 +111,15 @@ compute_loo <- function(x, criterion = c("loo", "waic", "psis", "kfold"),
         loo_args$log_ratios <- -loo_args$x
         loo_args$x <- NULL
       }
+      if (criterion == "quick_loo" && !pointwise) {
+        stop2("'quick_loo' can only be evaluated in a pointwise manner.")
+      }
       out <- SW(do_call(criterion, loo_args, pkg = "loo"))
     }
     attr(out, "yhash") <- hash_response(x, newdata = newdata, resp = resp)
   }
   attr(out, "model_name") <- model_name
-  if (criterion == "loo") {
+  if (criterion %in% c("loo", "quick_loo")) {
     if (reloo) {
       c(reloo_args) <- nlist(
         x = out, fit = x, newdata, resp, k_threshold, check = FALSE, ...

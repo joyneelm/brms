@@ -2614,6 +2614,31 @@ loo.brmsfit <-  function(x, ..., compare = TRUE, resp = NULL,
   do_call(compute_loos, args)
 }
 
+#' Quick approximate leave-one-out cross-validation (Quick-LOO)
+#' 
+#' @aliases quick_loo
+#' 
+#' @inheritParams loo.brmsfit
+#' @param m Size of the subsample of observations.
+#' 
+#' @importFrom loo quick_loo
+#' @export quick_loo
+#' @export
+quick_loo.brmsfit <-  function(x, ..., m = 100, compare = TRUE, resp = NULL,
+                               reloo = FALSE, k_threshold = 0.7, 
+                               reloo_args = list(), model_names = NULL) {
+  args <- split_dots(x, ..., model_names = model_names)
+  c(args) <- nlist(
+    criterion = "quick_loo", compare, 
+    resp, k_threshold, reloo, reloo_args
+  )
+  # 'waic_delta' requires summaries of the posterior 
+  # samples that brms cannot supply currently
+  args$approx_type <- "waic_full"
+  args$pointwise <- TRUE
+  do_call(compute_loos, args)
+}
+
 #' K-Fold Cross-Validation
 #' 
 #' Perform exact K-fold cross-validation by refitting the model \eqn{K}
