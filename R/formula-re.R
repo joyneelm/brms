@@ -74,7 +74,7 @@ gr <- function(..., by = NULL, cor = TRUE, id = NA,
   } else {
     cov <- ""
   }
-  dist <- match.arg(dist, c("gaussian", "student"))
+  dist <- match.arg(dist, c("gaussian", "student", "exgaussian"))
   allvars <- str2formula(c(groups, by))
   nlist(groups, allvars, label, by, cor, id, cov, dist, type = "")
 }
