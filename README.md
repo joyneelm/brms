@@ -313,7 +313,7 @@ The current developmental version can be downloaded from github via
 if (!requireNamespace("remotes")) {
   install.packages("remotes")
 }
-remotes::install_github("paul-buerkner/brms")
+remotes::install_github("joyneelm/brms")
 ```
 
 Because brms is based on Stan, a C++ compiler is required. The program
